@@ -15,7 +15,7 @@ class TestService {
     }
 
     fun test(): Single<Any> {
-        return ApiProvider.retrofitApi(TestApi::class)
+        return ApiProvider.of(TestApi::class)
                 .list()
     }
 }

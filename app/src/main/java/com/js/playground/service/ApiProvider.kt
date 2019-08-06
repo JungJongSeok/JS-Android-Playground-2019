@@ -23,7 +23,7 @@ class ApiProvider {
             return apiClientBuilder
         }
 
-        fun <T : Any> retrofitApi(kClass: KClass<T>): T = Retrofit.Builder()
+        fun <T : Any> of(kClass: KClass<T>): T = Retrofit.Builder()
                 .client(createOkHttpClientBuilder().build())
                 .baseUrl("https://test.com")
                 .addConverterFactory(GsonConverterFactory.create())
