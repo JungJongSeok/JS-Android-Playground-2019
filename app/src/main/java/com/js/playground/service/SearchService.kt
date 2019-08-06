@@ -10,7 +10,6 @@ class SearchService {
     }
 
     companion object {
-        @JvmStatic
         val instance by lazy {
             Holder.INSTANCE
         }
