@@ -3,6 +3,8 @@ package com.js.playground
 import android.arch.lifecycle.Observer
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.Toast
 import com.bumptech.glide.RequestManager
 import com.js.playground.extension.initRequestManager
@@ -20,15 +22,26 @@ class MainActivity : AppCompatActivity() {
         viewModel = initViewModel(MainViewModel::class)
         requestManager = initRequestManager()
 
-        viewModel.searchApi("Coffee")
         requestManager.load(R.mipmap.ic_launcher)
                 .into(activity_main_image)
 
         viewModel.testResult.observe(this, Observer {
-            activity_main_text.text = it?.results?.size?.toString()
+            activity_main_text.text = it?.results?.toString()
         })
         viewModel.throwable.observe(this, Observer {
             Toast.makeText(this, it?.message ?: "", Toast.LENGTH_SHORT).show()
+        })
+
+        activity_main_search.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                viewModel.searchApi(s?.toString())
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            }
         })
     }
 }
