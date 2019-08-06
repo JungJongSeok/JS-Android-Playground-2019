@@ -24,6 +24,9 @@ class MainActivity : AppCompatActivity() {
         requestManager.load(R.mipmap.ic_launcher)
                 .into(activity_main_image)
 
+        viewModel.testResult.observe(this, Observer {
+            activity_main_text.text = it?.results?.size?.toString()
+        })
         viewModel.throwable.observe(this, Observer {
             Toast.makeText(this, it?.message ?: "", Toast.LENGTH_SHORT).show()
         })

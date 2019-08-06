@@ -1,9 +1,15 @@
 package com.js.playground.service
 
+import com.js.playground.service.search.SearchResults
 import io.reactivex.Single
-import retrofit2.http.POST
+import retrofit2.http.GET
+import retrofit2.http.Query
 
 interface TestApi {
-    @POST("list")
-    fun list(): Single<Any>
+    @GET("search.json")
+    fun list(@Query("q") q: String,
+             @Query("location") location: String,
+             @Query("hl") hl: String,
+             @Query("gl") gl: String,
+             @Query("google_domain") google_domain: String): Single<SearchResults>
 }
