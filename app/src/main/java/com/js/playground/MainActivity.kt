@@ -1,21 +1,31 @@
 package com.js.playground
 
+import android.arch.lifecycle.Observer
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
 import com.bumptech.glide.RequestManager
-import com.js.playground.extension.viewModel
-import com.js.playground.service.TestService
-import java.lang.Exception
+import com.js.playground.extension.initRequestManager
+import com.js.playground.extension.initViewModel
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var viewModel : MainViewModel
+    private lateinit var viewModel: MainViewModel
+    private lateinit var requestManager: RequestManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        viewModel = viewModel(MainViewModel::class)
+        viewModel = initViewModel(MainViewModel::class)
+        requestManager = initRequestManager()
+
         viewModel.testApi()
+        requestManager.load(R.mipmap.ic_launcher)
+                .into(activity_main_image)
+
+        viewModel.throwable.observe(this, Observer {
+            Toast.makeText(this, it?.message ?: "", Toast.LENGTH_SHORT).show()
+        })
     }
 }
