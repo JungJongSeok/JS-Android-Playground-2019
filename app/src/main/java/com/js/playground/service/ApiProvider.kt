@@ -2,6 +2,7 @@ package com.js.playground.service
 
 import com.facebook.stetho.okhttp3.StethoInterceptor
 import com.js.playground.BuildConfig
+import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -22,11 +23,11 @@ class ApiProvider {
             return apiClientBuilder
         }
 
-        fun <T: Any> retrofitApi(kClass: KClass<T>): T = Retrofit.Builder()
+        fun <T : Any> retrofitApi(kClass: KClass<T>): T = Retrofit.Builder()
                 .client(createOkHttpClientBuilder().build())
                 .baseUrl("https://test.com")
                 .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .build()
                 .create(kClass.java)
     }
