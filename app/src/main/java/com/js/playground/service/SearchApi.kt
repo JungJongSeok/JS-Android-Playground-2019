@@ -5,7 +5,7 @@ import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface TestApi {
+interface SearchApi {
     @GET("search.json")
     fun list(@Query("q") q: String,
              @Query("location") location: String,

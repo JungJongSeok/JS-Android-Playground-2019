@@ -1,7 +1,7 @@
 package com.js.playground
 
 import android.arch.lifecycle.ViewModel
-import com.js.playground.service.TestService
+import com.js.playground.service.SearchService
 import com.js.playground.service.search.SearchResults
 import com.js.playground.utils.SafetyMutableLiveData
 import io.reactivex.disposables.CompositeDisposable
@@ -11,8 +11,8 @@ class MainViewModel : ViewModel() {
     val testResult = SafetyMutableLiveData<SearchResults>()
     val throwable = SafetyMutableLiveData<Throwable>()
 
-    fun testApi() {
-        compositeDisposable.add(TestService.instance.test().subscribe(testResult, throwable))
+    fun searchApi(q: String) {
+        compositeDisposable.add(SearchService.instance.search(q).subscribe(testResult, throwable))
     }
 
     override fun onCleared() {

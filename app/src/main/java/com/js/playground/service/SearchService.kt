@@ -4,9 +4,9 @@ import com.js.playground.service.search.SearchRequest
 import com.js.playground.service.search.SearchResults
 import io.reactivex.Single
 
-class TestService {
+class SearchService {
     private object Holder {
-        val INSTANCE = TestService()
+        val INSTANCE = SearchService()
     }
 
     companion object {
@@ -16,9 +16,9 @@ class TestService {
         }
     }
 
-    fun test(): Single<SearchResults> {
-        val searchRequest = SearchRequest("Coffee")
-        return ApiProvider.of(TestApi::class)
+    fun search(q: String): Single<SearchResults> {
+        val searchRequest = SearchRequest(q)
+        return ApiProvider.of(SearchApi::class)
                 .list(searchRequest.q,
                         searchRequest.location,
                         searchRequest.hl,

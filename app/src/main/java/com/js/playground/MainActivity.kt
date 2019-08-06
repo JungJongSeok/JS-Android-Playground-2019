@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         viewModel = initViewModel(MainViewModel::class)
         requestManager = initRequestManager()
 
-        viewModel.testApi()
+        viewModel.searchApi("Coffee")
         requestManager.load(R.mipmap.ic_launcher)
                 .into(activity_main_image)
 
