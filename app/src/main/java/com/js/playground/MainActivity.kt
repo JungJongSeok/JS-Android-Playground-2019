@@ -43,5 +43,6 @@ class MainActivity : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
             }
         })
+        activity_main_search.requestFocus()
     }
 }
