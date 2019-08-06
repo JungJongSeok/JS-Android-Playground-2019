@@ -25,7 +25,7 @@ class ApiProvider {
 
         fun <T : Any> of(kClass: KClass<T>): T = Retrofit.Builder()
                 .client(createOkHttpClientBuilder().build())
-                .baseUrl("https://test.com")
+                .baseUrl("https://serpapi.com/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                 .build()

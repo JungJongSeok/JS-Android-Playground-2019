@@ -1,5 +1,7 @@
 package com.js.playground.service
 
+import com.js.playground.service.search.SearchRequest
+import com.js.playground.service.search.SearchResults
 import io.reactivex.Single
 
 class TestService {
@@ -14,8 +16,13 @@ class TestService {
         }
     }
 
-    fun test(): Single<Any> {
+    fun test(): Single<SearchResults> {
+        val searchRequest = SearchRequest("Coffee")
         return ApiProvider.of(TestApi::class)
-                .list()
+                .list(searchRequest.q,
+                        searchRequest.location,
+                        searchRequest.hl,
+                        searchRequest.gl,
+                        searchRequest.google_domain)
     }
 }
