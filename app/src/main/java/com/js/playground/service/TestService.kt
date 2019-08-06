@@ -1,9 +1,6 @@
 package com.js.playground.service
 
-import android.util.Log
-import io.reactivex.functions.Consumer
-import io.reactivex.internal.functions.Functions
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.Single
 
 class TestService {
     private object Holder {
@@ -17,12 +14,8 @@ class TestService {
         }
     }
 
-    fun test() {
-        val dispose = ApiProvider.retrofitApi(TestApi::class)
+    fun test(): Single<Any> {
+        return ApiProvider.retrofitApi(TestApi::class)
                 .list()
-                .subscribeOn(Schedulers.io())
-                .subscribe { t1, t2 ->
-                    Log.e("aaaaaa", "test", t2)
-                }
     }
 }
