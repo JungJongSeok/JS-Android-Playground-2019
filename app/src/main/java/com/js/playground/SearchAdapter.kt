@@ -11,6 +11,10 @@ import com.js.playground.extension.EMPTY
 import com.js.playground.service.search.SearchResult
 import com.js.playground.utils.SettableViewHolder
 import kotlinx.android.synthetic.main.viewholder_search.view.*
+import androidx.core.content.ContextCompat.startActivity
+import android.content.Intent
+import android.net.Uri
+
 
 class SearchAdapter(private val requestManager: RequestManager)
     : PagedListAdapter<TypeSearchResult, SettableViewHolder<SearchResult>>(object : DiffUtil.ItemCallback<TypeSearchResult>() {
@@ -65,6 +69,9 @@ private class SearchViewHolder(itemView: View, private val requestManager: Reque
                 .into(thumbnailView)
         titleView.text = t.title
         addressView.text = t.link
+        itemView.setOnClickListener {
+            itemView.context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(t.link)))
+        }
     }
 }
 
@@ -78,6 +85,7 @@ private class SearchMoreViewHolder(itemView: View) : SettableViewHolder<SearchRe
     }
 
     override fun setData(t: SearchResult) {
+        // Do not something
     }
 }
 
