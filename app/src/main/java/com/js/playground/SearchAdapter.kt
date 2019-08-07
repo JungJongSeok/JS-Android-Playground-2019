@@ -43,6 +43,7 @@ class SearchAdapter(private val requestManager: RequestManager)
         }
     }
 
+    @Type
     override fun getItemViewType(position: Int): Int {
         return if (getItem(position)?.type == Type.SEARCH_TYPE) {
             Type.SEARCH_TYPE
