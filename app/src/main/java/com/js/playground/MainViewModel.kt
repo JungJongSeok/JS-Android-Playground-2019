@@ -34,7 +34,6 @@ class MainViewModel : ViewModel() {
 
     fun search(q: String?) {
         searchText.set(q)
-        lock.onNext(true)
     }
 
     private val config = PagedList.Config.Builder()
@@ -59,9 +58,6 @@ class MainViewModel : ViewModel() {
     }
 
     fun searchApi(callback: PageKeyedDataSource.LoadInitialCallback<String, TypeSearchResult>) {
-        if (searchText.get().isNullOrEmpty()) {
-            return
-        }
         compositeDisposable.add(SearchService.instance.search(searchText.get())
                 .delaySubscription(1000, TimeUnit.MILLISECONDS)
                 .takeUntil(lock.firstElement().toFlowable())
@@ -100,15 +96,26 @@ class MainViewModel : ViewModel() {
     }
 
     fun setPagedList() {
+        lock.onNext(true)
+        if (searchText.get().isNullOrEmpty()) {
+            return
+        }
         compositeDisposable.add(Single.fromCallable {
             return@fromCallable PagedList.Builder(dataSource, config)
                     .setNotifyExecutor(UiThreadExecutor)
                     .setFetchExecutor(BackgroundThreadExecutor)
                     .build()
         }
+                .delaySubscription(1000, TimeUnit.MILLISECONDS)
+                .takeUntil(lock.firstElement().toFlowable())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(submitList, throwable))
+                .subscribe(submitList, Consumer {
+                    if (it is CancellationException) {
+                        return@Consumer
+                    }
+                    throwable.setValueSafety(it)
+                }))
     }
     // endregion
 
@@ -127,12 +134,7 @@ class MainViewModel : ViewModel() {
     }
 
     fun searchApiAddFooter() {
-        if (searchText.get().isNullOrEmpty()) {
-            return
-        }
         compositeDisposable.add(SearchService.instance.search(searchText.get())
-                .delaySubscription(1000, TimeUnit.MILLISECONDS)
-                .takeUntil(lock.firstElement().toFlowable())
                 .subscribe(Consumer {
                     setValidPagedList(it.pagination.next_link, it.results.map { searchResult ->
                         TypeSearchResult(Type.SEARCH_TYPE, searchResult)
@@ -174,6 +176,10 @@ class MainViewModel : ViewModel() {
     }
 
     fun setPagedListAddFooter() {
+        lock.onNext(true)
+        if (searchText.get().isNullOrEmpty()) {
+            return
+        }
         compositeDisposable.add(Single.fromCallable {
             return@fromCallable PagedList.Builder(dataSourceAddFooter, config)
                     .setNotifyExecutor(UiThreadExecutor)
@@ -186,9 +192,16 @@ class MainViewModel : ViewModel() {
                     })
                     .build()
         }
+                .delaySubscription(1000, TimeUnit.MILLISECONDS)
+                .takeUntil(lock.firstElement().toFlowable())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(submitList, throwable))
+                .subscribe(submitList, Consumer {
+                    if (it is CancellationException) {
+                        return@Consumer
+                    }
+                    throwable.setValueSafety(it)
+                }))
     }
 
     private fun setValidPagedList(nextPageKey: String, typeSearchResults: List<TypeSearchResult> = emptyList()) {
