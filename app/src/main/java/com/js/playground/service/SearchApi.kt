@@ -12,4 +12,12 @@ interface SearchApi {
              @Query("hl") hl: String,
              @Query("gl") gl: String,
              @Query("google_domain") google_domain: String): Single<SearchResults>
+
+    @GET("search.json")
+    fun listMore(@Query("q") q: String,
+                 @Query("location") location: String,
+                 @Query("hl") hl: String,
+                 @Query("gl") gl: String,
+                 @Query("google_domain") google_domain: String,
+                 @Query("start") start: String): Single<SearchResults>
 }

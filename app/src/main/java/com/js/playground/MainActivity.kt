@@ -1,11 +1,12 @@
 package com.js.playground
 
-import androidx.lifecycle.Observer
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.RequestManager
 import com.js.playground.extension.initRequestManager
 import com.js.playground.extension.initViewModel
@@ -15,18 +16,22 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MainViewModel
     private lateinit var requestManager: RequestManager
+    private lateinit var searchAdapter: SearchAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         viewModel = initViewModel(MainViewModel::class)
         requestManager = initRequestManager()
+        searchAdapter = SearchAdapter(requestManager)
 
-        requestManager.load(R.mipmap.ic_launcher)
-                .into(activity_main_image)
+        activity_main_search_recycler_view.layoutManager = LinearLayoutManager(this)
+        activity_main_search_recycler_view.adapter = searchAdapter
 
         viewModel.testResult.observe(this, Observer {
-            activity_main_text.text = it?.results?.toString()
+        })
+        viewModel.submitList.observe(this, Observer {
+            searchAdapter.submitList(it)
         })
         viewModel.throwable.observe(this, Observer {
             Toast.makeText(this, it?.message ?: "", Toast.LENGTH_SHORT).show()
@@ -34,7 +39,9 @@ class MainActivity : AppCompatActivity() {
 
         activity_main_search.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-                viewModel.searchApi(s?.toString())
+                viewModel.search(s?.toString())
+//                viewModel.setPagedList()
+                viewModel.setPagedListAddFooter()
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
