@@ -1,24 +1,15 @@
 package com.js.playground
 
-import androidx.lifecycle.Observer
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.Toast
-import androidx.paging.ItemKeyedDataSource
-import androidx.paging.PagedList
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.RequestManager
-import com.js.playground.extension.BackgroundThreadExecutor
-import com.js.playground.extension.UiThreadExecutor
 import com.js.playground.extension.initRequestManager
 import com.js.playground.extension.initViewModel
-import com.js.playground.utils.MLog
-import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.Consumer
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -49,7 +40,8 @@ class MainActivity : AppCompatActivity() {
         activity_main_search.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
                 viewModel.search(s?.toString())
-                viewModel.setPagedList()
+//                viewModel.setPagedList()
+                viewModel.setPagedListAddFooter()
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {

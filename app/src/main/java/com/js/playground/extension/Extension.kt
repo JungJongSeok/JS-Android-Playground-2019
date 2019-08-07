@@ -32,6 +32,9 @@ fun Fragment.initRequestManager(): RequestManager {
     return Glide.with(this)
 }
 
+val String.Companion.EMPTY: String
+    get() = ""
+
 object UiThreadExecutor : Executor {
     private val handler = Handler(Looper.getMainLooper())
 

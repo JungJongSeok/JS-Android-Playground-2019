@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat
 import androidx.paging.PagedListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import com.bumptech.glide.RequestManager
+import com.js.playground.extension.EMPTY
 import com.js.playground.service.search.SearchResult
 import com.js.playground.utils.SettableViewHolder
 import kotlinx.android.synthetic.main.viewholder_search.view.*
@@ -23,7 +24,11 @@ class SearchAdapter(private val requestManager: RequestManager)
 
 }) {
     override fun onCreateViewHolder(parent: ViewGroup, @Type viewType: Int): SettableViewHolder<SearchResult> {
-        return SearchViewHolder.getInstance(parent, requestManager)
+        return if (viewType == Type.SEARCH_TYPE) {
+            SearchViewHolder.getInstance(parent, requestManager)
+        } else {
+            SearchMoreViewHolder.getInstance(parent)
+        }
     }
 
     override fun onBindViewHolder(holder: SettableViewHolder<SearchResult>, position: Int) {
@@ -31,6 +36,14 @@ class SearchAdapter(private val requestManager: RequestManager)
             getItem(position)?.run {
                 holder.setData(searchResult)
             }
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if (getItem(position)?.type == Type.SEARCH_TYPE) {
+            Type.SEARCH_TYPE
+        } else {
+            Type.MORE_TYPE
         }
     }
 }
@@ -55,12 +68,27 @@ private class SearchViewHolder(itemView: View, private val requestManager: Reque
     }
 }
 
-data class TypeSearchResult(@Type val type: Int, val searchResult: SearchResult)
+private class SearchMoreViewHolder(itemView: View) : SettableViewHolder<SearchResult>(itemView) {
+
+    companion object {
+        fun getInstance(parent: ViewGroup): SettableViewHolder<SearchResult> {
+            return SearchMoreViewHolder(LayoutInflater.from(parent.context)
+                    .inflate(R.layout.viewholder_search_more, parent, false))
+        }
+    }
+
+    override fun setData(t: SearchResult) {
+    }
+}
+
+data class TypeSearchResult(@Type val type: Int, val searchResult: SearchResult) {
+    constructor() : this(Type.MORE_TYPE, SearchResult(-1, String.EMPTY, String.EMPTY))
+}
 
 @Retention(AnnotationRetention.SOURCE)
 annotation class Type {
     companion object {
         const val SEARCH_TYPE = 0
-        const val FOOTER_TYPE = 1
+        const val MORE_TYPE = 1
     }
 }

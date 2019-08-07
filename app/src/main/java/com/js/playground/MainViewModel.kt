@@ -4,11 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.paging.PageKeyedDataSource
 import androidx.paging.PagedList
 import com.js.playground.extension.BackgroundThreadExecutor
+import com.js.playground.extension.EMPTY
 import com.js.playground.extension.UiThreadExecutor
 import com.js.playground.service.SearchService
 import com.js.playground.service.search.SearchResults
 import com.js.playground.utils.ErrorParser
-import com.js.playground.utils.MLog
 import com.js.playground.utils.SafetyMutableLiveData
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -28,12 +28,23 @@ class MainViewModel : ViewModel() {
     val submitList = SafetyMutableLiveData<PagedList<TypeSearchResult>>()
     val throwable = SafetyMutableLiveData<Throwable>()
 
+
+    private val searchText = AtomicReference("")
+    private val lock = PublishSubject.create<Boolean>()
+
+    fun search(q: String?) {
+        searchText.set(q)
+        lock.onNext(true)
+    }
+
     private val config = PagedList.Config.Builder()
             .setInitialLoadSizeHint(20) // 첫번째 로드가 될때 그릴 아이템 size
             .setPageSize(8) // pagination 크기
             .setPrefetchDistance(5) // 미리 그려 놓을 아이템 size
             .setEnablePlaceholders(true) // null 아이템을 미리 그려 놓을지의 flag
             .build()
+
+    // region for Normal Paging
     private val dataSource = object : PageKeyedDataSource<String, TypeSearchResult>() {
         override fun loadInitial(params: LoadInitialParams<String>, callback: LoadInitialCallback<String, TypeSearchResult>) {
             searchApi(callback)
@@ -45,14 +56,6 @@ class MainViewModel : ViewModel() {
 
         override fun loadBefore(params: LoadParams<String>, callback: LoadCallback<String, TypeSearchResult>) {
         }
-    }
-
-    private val searchText = AtomicReference("")
-    private val lock = PublishSubject.create<Boolean>()
-
-    fun search(q: String?) {
-        searchText.set(q)
-        lock.onNext(true)
     }
 
     fun searchApi(callback: PageKeyedDataSource.LoadInitialCallback<String, TypeSearchResult>) {
@@ -101,10 +104,84 @@ class MainViewModel : ViewModel() {
             return@fromCallable PagedList.Builder(dataSource, config)
                     .setNotifyExecutor(UiThreadExecutor)
                     .setFetchExecutor(BackgroundThreadExecutor)
+                    .build()
+        }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(submitList, throwable))
+    }
+    // endregion
+
+    // region for Having Loading Indicator Paging
+    private val dataSourceAddFooter = object : PageKeyedDataSource<String, TypeSearchResult>() {
+        override fun loadInitial(params: LoadInitialParams<String>, callback: LoadInitialCallback<String, TypeSearchResult>) {
+            searchApiAddFooter()
+        }
+
+        override fun loadAfter(params: LoadParams<String>, callback: LoadCallback<String, TypeSearchResult>) {
+            searchMoreApiAddFooter(params.key)
+        }
+
+        override fun loadBefore(params: LoadParams<String>, callback: LoadCallback<String, TypeSearchResult>) {
+        }
+    }
+
+    fun searchApiAddFooter() {
+        if (searchText.get().isNullOrEmpty()) {
+            return
+        }
+        compositeDisposable.add(SearchService.instance.search(searchText.get())
+                .delaySubscription(1000, TimeUnit.MILLISECONDS)
+                .takeUntil(lock.firstElement().toFlowable())
+                .subscribe(Consumer {
+                    setValidPagedList(it.pagination.next_link, it.results.map { searchResult ->
+                        TypeSearchResult(Type.SEARCH_TYPE, searchResult)
+                    }.toMutableList().apply {
+                        // For More ViewHolder
+                        add(TypeSearchResult())
+                    })
+                }, Consumer {
+                    if (it is CancellationException) {
+                        return@Consumer
+                    }
+                    if (it is HttpException) {
+                        throwable.setValueSafety(IllegalStateException(ErrorParser.parse(it).error))
+                    } else {
+                        throwable.setValueSafety(it)
+                    }
+                }))
+    }
+
+    fun searchMoreApiAddFooter(key: String) {
+        compositeDisposable.add(SearchService.instance.searchMore(searchText.get(), key)
+                .subscribe(Consumer {
+                    setValidPagedList(it.pagination.next_link, it.results.map { searchResult ->
+                        TypeSearchResult(Type.SEARCH_TYPE, searchResult)
+                    }.toMutableList().apply {
+                        // For More ViewHolder
+                        add(TypeSearchResult())
+                    })
+                }, Consumer {
+                    if (it is CancellationException) {
+                        return@Consumer
+                    }
+                    if (it is HttpException) {
+                        throwable.setValueSafety(IllegalStateException(ErrorParser.parse(it).error))
+                    } else {
+                        throwable.setValueSafety(it)
+                    }
+                }))
+    }
+
+    fun setPagedListAddFooter() {
+        compositeDisposable.add(Single.fromCallable {
+            return@fromCallable PagedList.Builder(dataSourceAddFooter, config)
+                    .setNotifyExecutor(UiThreadExecutor)
+                    .setFetchExecutor(BackgroundThreadExecutor)
                     .setBoundaryCallback(object : PagedList.BoundaryCallback<TypeSearchResult>() {
                         override fun onZeroItemsLoaded() {
                             super.onZeroItemsLoaded()
-                            MLog.e("onZeroItemsLoaded")
+                            setValidPagedList(String.EMPTY)
                         }
                     })
                     .build()
@@ -113,6 +190,35 @@ class MainViewModel : ViewModel() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(submitList, throwable))
     }
+
+    private fun setValidPagedList(nextPageKey: String, typeSearchResults: List<TypeSearchResult> = emptyList()) {
+        val pagedList = submitList.value ?: return
+        val validList = pagedList.snapshot().filter { it.type == Type.SEARCH_TYPE }
+                .toMutableList().apply {
+                    addAll(typeSearchResults)
+                }
+        compositeDisposable.add(Single.fromCallable {
+            return@fromCallable PagedList.Builder(object : PageKeyedDataSource<String, TypeSearchResult>() {
+                override fun loadInitial(params: LoadInitialParams<String>, callback: LoadInitialCallback<String, TypeSearchResult>) {
+                    callback.onResult(validList, String.EMPTY, nextPageKey)
+                }
+
+                override fun loadAfter(params: LoadParams<String>, callback: LoadCallback<String, TypeSearchResult>) {
+                    searchMoreApiAddFooter(params.key)
+                }
+
+                override fun loadBefore(params: LoadParams<String>, callback: LoadCallback<String, TypeSearchResult>) {
+                }
+            }, config)
+                    .setNotifyExecutor(UiThreadExecutor)
+                    .setFetchExecutor(BackgroundThreadExecutor)
+                    .build()
+        }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(submitList, throwable))
+    }
+    // endregion
 
     override fun onCleared() {
         super.onCleared()
