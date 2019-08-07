@@ -57,7 +57,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun searchApi(callback: PageKeyedDataSource.LoadInitialCallback<String, TypeSearchResult>) {
+    private fun searchApi(callback: PageKeyedDataSource.LoadInitialCallback<String, TypeSearchResult>) {
         compositeDisposable.add(SearchService.instance.search(searchText.get())
                 .delaySubscription(1000, TimeUnit.MILLISECONDS)
                 .takeUntil(lock.firstElement().toFlowable())
@@ -77,7 +77,7 @@ class MainViewModel : ViewModel() {
                 }))
     }
 
-    fun searchMoreApi(key: String, callback: PageKeyedDataSource.LoadCallback<String, TypeSearchResult>) {
+    private fun searchMoreApi(key: String, callback: PageKeyedDataSource.LoadCallback<String, TypeSearchResult>) {
         compositeDisposable.add(SearchService.instance.searchMore(searchText.get(), key)
                 .subscribe(Consumer {
                     callback.onResult(it.results.map { searchResult ->
@@ -133,7 +133,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun searchApiAddFooter() {
+    private fun searchApiAddFooter() {
         compositeDisposable.add(SearchService.instance.search(searchText.get())
                 .subscribe(Consumer {
                     setValidPagedList(it.pagination.next_link, it.results.map { searchResult ->
@@ -154,7 +154,7 @@ class MainViewModel : ViewModel() {
                 }))
     }
 
-    fun searchMoreApiAddFooter(key: String) {
+    private fun searchMoreApiAddFooter(key: String) {
         compositeDisposable.add(SearchService.instance.searchMore(searchText.get(), key)
                 .subscribe(Consumer {
                     setValidPagedList(it.pagination.next_link, it.results.map { searchResult ->
