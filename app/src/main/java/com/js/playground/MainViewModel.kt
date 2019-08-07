@@ -1,6 +1,6 @@
 package com.js.playground
 
-import android.arch.lifecycle.ViewModel
+import androidx.lifecycle.ViewModel
 import com.js.playground.service.SearchService
 import com.js.playground.service.search.SearchResults
 import com.js.playground.utils.ErrorParser
@@ -42,6 +42,6 @@ class MainViewModel : ViewModel() {
 
     override fun onCleared() {
         super.onCleared()
-        compositeDisposable.clear()
+        compositeDisposable.dispose()
     }
 }

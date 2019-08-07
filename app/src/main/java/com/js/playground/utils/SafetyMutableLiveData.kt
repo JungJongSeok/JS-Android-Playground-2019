@@ -1,6 +1,6 @@
 package com.js.playground.utils
 
-import android.arch.lifecycle.MutableLiveData
+import androidx.lifecycle.MutableLiveData
 import android.os.Looper
 import io.reactivex.functions.Consumer
 
