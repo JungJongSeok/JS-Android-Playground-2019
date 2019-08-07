@@ -8,7 +8,11 @@ class ErrorParser {
     companion object {
         fun parse(throwable: HttpException): ErrorResult {
             val errorBody = throwable.response().errorBody()?.string() ?: ""
-            return Gson().fromJson(errorBody, ErrorResult::class.java)
+            return try {
+                Gson().fromJson(errorBody, ErrorResult::class.java)
+            } catch (e: Exception) {
+                ErrorResult("Something Error")
+            }
         }
     }
 }

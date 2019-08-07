@@ -1,5 +1,7 @@
 package com.js.playground
 
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,19 +13,16 @@ import com.js.playground.extension.EMPTY
 import com.js.playground.service.search.SearchResult
 import com.js.playground.utils.SettableViewHolder
 import kotlinx.android.synthetic.main.viewholder_search.view.*
-import androidx.core.content.ContextCompat.startActivity
-import android.content.Intent
-import android.net.Uri
 
 
 class SearchAdapter(private val requestManager: RequestManager)
     : PagedListAdapter<TypeSearchResult, SettableViewHolder<SearchResult>>(object : DiffUtil.ItemCallback<TypeSearchResult>() {
     override fun areItemsTheSame(oldItem: TypeSearchResult, newItem: TypeSearchResult): Boolean {
-        return oldItem == oldItem
+        return oldItem == newItem
     }
 
     override fun areContentsTheSame(oldItem: TypeSearchResult, newItem: TypeSearchResult): Boolean {
-        return oldItem == oldItem
+        return oldItem == newItem
     }
 
 }) {

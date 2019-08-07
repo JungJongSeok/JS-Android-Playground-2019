@@ -28,7 +28,6 @@ class MainViewModel : ViewModel() {
     val submitList = SafetyMutableLiveData<PagedList<TypeSearchResult>>()
     val throwable = SafetyMutableLiveData<Throwable>()
 
-
     private val searchText = AtomicReference("")
     private val lock = PublishSubject.create<Boolean>()
 
@@ -92,6 +91,7 @@ class MainViewModel : ViewModel() {
                     } else {
                         throwable.setValueSafety(it)
                     }
+                    setValidPagedList()
                 }))
     }
 
@@ -172,6 +172,7 @@ class MainViewModel : ViewModel() {
                     } else {
                         throwable.setValueSafety(it)
                     }
+                    setValidPagedList()
                 }))
     }
 
@@ -187,7 +188,7 @@ class MainViewModel : ViewModel() {
                     .setBoundaryCallback(object : PagedList.BoundaryCallback<TypeSearchResult>() {
                         override fun onZeroItemsLoaded() {
                             super.onZeroItemsLoaded()
-                            setValidPagedList(String.EMPTY)
+                            setValidPagedList()
                         }
                     })
                     .build()
@@ -204,7 +205,7 @@ class MainViewModel : ViewModel() {
                 }))
     }
 
-    private fun setValidPagedList(nextPageKey: String, typeSearchResults: List<TypeSearchResult> = emptyList()) {
+    private fun setValidPagedList(nextPageKey: String = String.EMPTY, typeSearchResults: List<TypeSearchResult> = emptyList()) {
         val pagedList = submitList.value ?: return
         val validList = pagedList.snapshot().filter { it.type == Type.SEARCH_TYPE }
                 .toMutableList().apply {
@@ -217,7 +218,9 @@ class MainViewModel : ViewModel() {
                 }
 
                 override fun loadAfter(params: LoadParams<String>, callback: LoadCallback<String, TypeSearchResult>) {
-                    searchMoreApiAddFooter(params.key)
+                    if (nextPageKey.isNotEmpty()) {
+                        searchMoreApiAddFooter(params.key)
+                    }
                 }
 
                 override fun loadBefore(params: LoadParams<String>, callback: LoadCallback<String, TypeSearchResult>) {
